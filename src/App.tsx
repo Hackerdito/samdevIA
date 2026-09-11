@@ -277,7 +277,7 @@ export default function App() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="flex items-center gap-1 rounded-md bg-orange-500/15 border border-orange-500/30 px-2.5 py-0.5 text-xs font-semibold text-orange-400">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Ecosistema Freepik & Magnific AI
+                  SamDev IA • Generación Creativa
                 </span>
                 <span className="flex items-center gap-1 rounded-md bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-300">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
@@ -289,10 +289,10 @@ export default function App() {
                 </span>
               </div>
               <h1 className="font-['Syne',sans-serif] text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-                Generador de Video e Imagen con Todos los Motores IA
+                SamDev IA • Estudio Multi-Motor de Video e Imagen
               </h1>
               <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                Genera con <strong>Mystic v2.5</strong>, <strong>Flux 1.1 Pro</strong>, <strong>Kling 1.5 HD</strong>, <strong>MiniMax Hailuo</strong>, <strong>Imagen 3</strong>, <strong>Recraft V3</strong> y el <strong>Magnific AI Enhancer</strong>. Todo el historial y parámetros se almacenan de forma persistente y segura en Firebase.
+                Genera con <strong>Mystic v2.5</strong>, <strong>Flux 1.1 Pro</strong>, <strong>Kling 1.5 HD</strong>, <strong>MiniMax Hailuo</strong>, <strong>Imagen 3</strong>, <strong>Recraft V3</strong> y herramientas de escalado de detalle. Todo tu historial y parámetros se almacenan de forma segura en Firebase Firestore.
               </p>
             </div>
 

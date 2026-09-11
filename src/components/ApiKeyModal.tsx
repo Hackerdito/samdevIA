@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Key, X, CheckCircle2, ExternalLink, ShieldCheck, AlertCircle, Info } from 'lucide-react';
+import { Key, X, CheckCircle2, ExternalLink, ShieldCheck, AlertCircle, Info, RefreshCw } from 'lucide-react';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -20,7 +20,41 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
   const [inputKey, setInputKey] = useState<string>(apiKey || '');
   const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [isTesting, setIsTesting] = useState<boolean>(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleTestKey = async () => {
+    if (!inputKey.trim() || isTesting) return;
+    setIsTesting(true);
+    setTestResult(null);
+
+    try {
+      const res = await fetch('/api/freepik/verify-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: inputKey.trim() })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setTestResult({
+          success: true,
+          message: '¡Conexión exitosa con la API de Freepik / Magnific!'
+        });
+      } else {
+        setTestResult({
+          success: false,
+          message: data.error || 'La clave fue rechazada. Verifica tus créditos o permisos en Freepik.'
+        });
+      }
+    } catch (err: any) {
+      setTestResult({
+        success: false,
+        message: 'Error al contactar con el servidor: ' + err.message
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,31 +86,30 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30">
             <Key className="h-5 w-5" />
           </div>
           <div>
             <h3 className="font-['Syne',sans-serif] text-base font-bold text-white">
-              API de Freepik & Magnific AI
+              SamDev IA • Conexión API Freepik & Magnific
             </h3>
             <p className="text-xs text-zinc-400">
-              Conexión para todos los motores de generación de video e imagen
+              Conexión para todos los motores de video e imagen IA
             </p>
           </div>
         </div>
 
-        {/* Explanation Note */}
+        {/* Security & Cloud Note */}
         <div className="mt-4 rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-3.5 text-xs leading-relaxed text-zinc-300 space-y-2">
           <div className="flex items-start gap-2 text-zinc-300">
-            <Info className="h-4 w-4 text-orange-400 shrink-0 mt-0.5" />
+            <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
             <span>
-              <strong>Magnific AI</strong> forma parte del ecosistema oficial de <strong>Freepik</strong>. A través de la clave API unificada de Freepik Developer, la aplicación tiene acceso a:
+              <strong>Seguridad y Protección de Claves:</strong> Las peticiones se canalizan mediante proxy de servidor en <code>/api/freepik/*</code> para evitar exponer tu clave en el navegador. Las alertas automáticas de escáneres en la nube suelen generarse al detectar tokens públicos de Firebase en el frontend o commits no restringidos.
             </span>
           </div>
-          <ul className="list-disc list-inside text-zinc-400 pl-4 space-y-1 text-[11px]">
-            <li><strong>Motores de Imagen:</strong> Mystic v2.5, Flux 1.1 Pro, Recraft V3, Imagen 3, Seedream y Magnific AI Enhancer.</li>
-            <li><strong>Motores de Video:</strong> Kling 1.5 HD, MiniMax Hailuo 01, Runway Gen-3, Luma Dream Machine y CogVideoX.</li>
-          </ul>
+          <p className="text-zinc-400 text-[11px] pl-6">
+            Al activar tu clave, tienes acceso a los motores insignia: <strong>Mystic v2.5</strong>, <strong>Flux 1.1 Pro</strong>, <strong>Kling 1.5 HD</strong>, <strong>MiniMax Hailuo</strong>, <strong>Recraft V3</strong> e <strong>Imagen 3</strong>.
+          </p>
         </div>
 
         {/* API Key Form */}
@@ -85,23 +118,40 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
             <label className="mb-1.5 block text-xs font-semibold text-zinc-300">
               Tu Clave API de Freepik / Magnific
             </label>
-            <input
-              id="input-freepik-api-key"
-              type="password"
-              value={inputKey}
-              onChange={(e) => setInputKey(e.target.value)}
-              placeholder="FPSX_..."
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-900/90 px-3.5 py-2.5 text-xs text-zinc-100 placeholder-zinc-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 font-mono"
-            />
+            <div className="flex gap-2">
+              <input
+                id="input-freepik-api-key"
+                type="password"
+                value={inputKey}
+                onChange={(e) => setInputKey(e.target.value)}
+                placeholder="FPSX_..."
+                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900/90 px-3.5 py-2.5 text-xs text-zinc-100 placeholder-zinc-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 font-mono"
+              />
+              <button
+                type="button"
+                onClick={handleTestKey}
+                disabled={!inputKey.trim() || isTesting}
+                className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700 hover:text-white disabled:opacity-40 transition-colors"
+                title="Probar conexión con Freepik"
+              >
+                {isTesting ? (
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-orange-400" />
+                ) : (
+                  <Key className="h-3.5 w-3.5 text-orange-400" />
+                )}
+                <span>Probar</span>
+              </button>
+            </div>
+            
             <p className="mt-1.5 text-[11px] text-zinc-400 flex items-center justify-between">
-              <span>Puedes obtener tu clave en el panel de desarrollador.</span>
+              <span>Panel de Freepik Developer:</span>
               <a
                 href="https://freepik.com/api"
                 target="_blank"
                 rel="noreferrer"
                 className="text-orange-400 hover:text-orange-300 flex items-center gap-1 font-medium"
               >
-                <span>Obtener clave</span>
+                <span>developer.freepik.com</span>
                 <ExternalLink className="h-3 w-3" />
               </a>
             </p>
@@ -112,7 +162,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
             <div className="flex items-center gap-2 rounded-lg bg-zinc-900/40 px-3 py-2 text-[11px] text-zinc-400 border border-zinc-800">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
               <span>
-                Asociado a tu cuenta de usuario: <strong>{userEmail}</strong>
+                Asociado a tu cuenta de administrador: <strong>{userEmail}</strong>
               </span>
             </div>
           )}
@@ -124,7 +174,11 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/30'
                 : 'bg-red-950/40 text-red-300 border border-red-500/30'
             }`}>
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+              {testResult.success ? (
+                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+              ) : (
+                <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
+              )}
               <span>{testResult.message}</span>
             </div>
           )}
@@ -136,7 +190,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
               onClick={onClose}
               className="rounded-xl px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
             >
-              Cancelar
+              Cerrar
             </button>
             <button
               id="btn-save-api-key"

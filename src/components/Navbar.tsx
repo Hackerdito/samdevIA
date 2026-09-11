@@ -33,11 +33,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-['Syne',sans-serif] text-lg font-bold tracking-tight text-zinc-100">
-                MAGNIFIC
+              <span className="font-['Syne',sans-serif] text-lg font-bold tracking-tight text-white">
+                SamDev IA
               </span>
-              <span className="rounded-md bg-zinc-800 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-300">
-                FREEPIK ENGINE
+              <span className="rounded-md bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 text-[10px] font-semibold text-orange-400">
+                PRO STUDIO
               </span>
             </div>
             <p className="text-[11px] text-zinc-400">

@@ -1,6 +1,6 @@
 {
-  "name": "Magnific Studio AI - Freepik Generative Engine",
-  "description": "Estudio de generación de video e imagen con soporte para múltiples motores de IA (Mystic, Flux, Kling, Minimax, Imagen 3, Recraft) con persistencia en Firebase.",
+  "name": "SamDev IA",
+  "description": "Estudio de generación de videos e imágenes con todos los motores de IA (Mystic, Flux, Kling, Minimax, Imagen 3, Recraft) y persistencia en Firebase.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
