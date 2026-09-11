@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Key, X, CheckCircle2, ExternalLink, ShieldCheck, AlertCircle, Info, RefreshCw } from 'lucide-react';
+import { Key, X, CheckCircle2, ExternalLink, ShieldCheck, AlertCircle, Info, RefreshCw, Globe } from 'lucide-react';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -29,7 +29,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     setTestResult(null);
 
     try {
-      const res = await fetch('/api/freepik/verify-key', {
+      const res = await fetch('/api/magnific/verify-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ apiKey: inputKey.trim() })
@@ -38,12 +38,12 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       if (data.valid) {
         setTestResult({
           success: true,
-          message: '¡Conexión exitosa con la API de Freepik / Magnific!'
+          message: '¡Conexión exitosa con la API de Magnific!'
         });
       } else {
         setTestResult({
           success: false,
-          message: data.error || 'La clave fue rechazada. Verifica tus créditos o permisos en Freepik.'
+          message: data.error || 'La clave fue rechazada. Verifica tus créditos o permisos en tu cuenta de Magnific.'
         });
       }
     } catch (err: any) {
@@ -86,15 +86,15 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
             <Key className="h-5 w-5" />
           </div>
           <div>
             <h3 className="font-['Syne',sans-serif] text-base font-bold text-white">
-              SamDev IA • Conexión API Freepik & Magnific
+              SamDev IA • Clave de Magnific API
             </h3>
             <p className="text-xs text-zinc-400">
-              Conexión para todos los motores de video e imagen IA
+              Autenticación oficial: header <code className="text-amber-300">x-magnific-api-key</code>
             </p>
           </div>
         </div>
@@ -104,54 +104,57 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
           <div className="flex items-start gap-2 text-zinc-300">
             <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
             <span>
-              <strong>Seguridad y Protección de Claves:</strong> Las peticiones se canalizan mediante proxy de servidor en <code>/api/freepik/*</code> para evitar exponer tu clave en el navegador. Las alertas automáticas de escáneres en la nube suelen generarse al detectar tokens públicos de Firebase en el frontend o commits no restringidos.
+              <strong>Protección Total de Claves:</strong> Todas las llamadas a la API de Magnific se realizan exclusivamente desde el backend seguro (<code>/api/magnific/*</code>), nunca se exponen al navegador.
             </span>
           </div>
-          <p className="text-zinc-400 text-[11px] pl-6">
-            Al activar tu clave, tienes acceso a los motores insignia: <strong>Mystic v2.5</strong>, <strong>Flux 1.1 Pro</strong>, <strong>Kling 1.5 HD</strong>, <strong>MiniMax Hailuo</strong>, <strong>Recraft V3</strong> e <strong>Imagen 3</strong>.
-          </p>
+          <div className="flex items-start gap-2 text-zinc-400 text-[11px]">
+            <Globe className="h-3.5 w-3.5 text-indigo-400 shrink-0 mt-0.5" />
+            <span>
+              <strong>Al desplegar en Vercel:</strong> Configura la variable de entorno <code className="text-amber-300">MAGNIFIC_API_KEY</code> en tu panel de Vercel (<em>Settings &gt; Environment Variables</em>).
+            </span>
+          </div>
         </div>
 
         {/* API Key Form */}
         <form onSubmit={handleSave} className="mt-5 space-y-4">
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-zinc-300">
-              Tu Clave API de Freepik / Magnific
+              Tu Clave API de Magnific
             </label>
             <div className="flex gap-2">
               <input
-                id="input-freepik-api-key"
+                id="input-magnific-api-key"
                 type="password"
                 value={inputKey}
                 onChange={(e) => setInputKey(e.target.value)}
-                placeholder="FPSX_..."
-                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900/90 px-3.5 py-2.5 text-xs text-zinc-100 placeholder-zinc-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 font-mono"
+                placeholder="mag_live_... o clave privada"
+                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900/90 px-3.5 py-2.5 text-xs text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono"
               />
               <button
                 type="button"
                 onClick={handleTestKey}
                 disabled={!inputKey.trim() || isTesting}
                 className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700 hover:text-white disabled:opacity-40 transition-colors"
-                title="Probar conexión con Freepik"
+                title="Probar conexión con Magnific API"
               >
                 {isTesting ? (
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-orange-400" />
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-amber-400" />
                 ) : (
-                  <Key className="h-3.5 w-3.5 text-orange-400" />
+                  <Key className="h-3.5 w-3.5 text-amber-400" />
                 )}
                 <span>Probar</span>
               </button>
             </div>
             
             <p className="mt-1.5 text-[11px] text-zinc-400 flex items-center justify-between">
-              <span>Panel de Freepik Developer:</span>
+              <span>Panel de Claves de Magnific:</span>
               <a
-                href="https://freepik.com/api"
+                href="https://www.magnific.com/user/organization/api-keys"
                 target="_blank"
                 rel="noreferrer"
-                className="text-orange-400 hover:text-orange-300 flex items-center gap-1 font-medium"
+                className="text-amber-400 hover:text-amber-300 flex items-center gap-1 font-medium"
               >
-                <span>developer.freepik.com</span>
+                <span>magnific.com/user/organization/api-keys</span>
                 <ExternalLink className="h-3 w-3" />
               </a>
             </p>
@@ -208,3 +211,4 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     </div>
   );
 };
+

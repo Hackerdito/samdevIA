@@ -9,10 +9,11 @@ import {
   Image as ImageIcon, 
   Search, 
   Sparkles, 
-  ExternalLink,
-  Layers
+  Music,
+  Coins,
+  Volume2
 } from 'lucide-react';
-import { AI_ENGINES } from '../constants/engines';
+import { ALL_MAGNIFIC_ENGINES, getEngineById } from '../constants/magnificEngines';
 
 interface MediaGalleryProps {
   generations: GenerationItem[];
@@ -31,13 +32,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   onSelectMedia,
   onReusePrompt,
 }) => {
-  const [filterType, setFilterType] = useState<'all' | 'image' | 'video' | 'favorites'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'images' | 'video' | 'editing' | 'audio' | 'favorites'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const filteredItems = generations.filter((item) => {
     if (filterType === 'favorites' && !item.isFavorite) return false;
-    if (filterType === 'image' && item.type !== 'image') return false;
-    if (filterType === 'video' && item.type !== 'video') return false;
+    const cat = item.category || (item.type === 'video' ? 'video' : 'images');
+    if (filterType !== 'all' && filterType !== 'favorites' && cat !== filterType) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return (
@@ -49,7 +50,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   });
 
   const getEngineName = (engineId: string) => {
-    const found = AI_ENGINES.find((e) => e.id === engineId);
+    const found = getEngineById(engineId);
     return found ? found.name : engineId;
   };
 
@@ -81,10 +82,10 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           
           {/* Search bar */}
-          <div className="relative flex-1 sm:w-56">
+          <div className="relative flex-1 sm:w-48">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
             <input
               id="input-gallery-search"
@@ -92,15 +93,15 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar prompt o motor..."
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 pl-8 text-xs text-zinc-200 placeholder-zinc-500 focus:border-orange-500 focus:outline-none"
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 pl-8 text-xs text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none"
             />
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center gap-1 rounded-lg bg-zinc-900 p-1 border border-zinc-800 text-xs">
+          <div className="flex items-center gap-1 rounded-xl bg-zinc-900 p-1 border border-zinc-800 text-xs overflow-x-auto max-w-full">
             <button
               onClick={() => setFilterType('all')}
-              className={`rounded-md px-2.5 py-1 transition-colors ${
+              className={`rounded-lg px-2.5 py-1 transition-colors ${
                 filterType === 'all'
                   ? 'bg-zinc-800 text-white font-semibold'
                   : 'text-zinc-400 hover:text-zinc-200'
@@ -109,9 +110,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
               Todos
             </button>
             <button
-              onClick={() => setFilterType('image')}
-              className={`rounded-md px-2.5 py-1 transition-colors ${
-                filterType === 'image'
+              onClick={() => setFilterType('images')}
+              className={`rounded-lg px-2.5 py-1 transition-colors ${
+                filterType === 'images'
                   ? 'bg-amber-500/20 text-amber-300 font-semibold'
                   : 'text-zinc-400 hover:text-zinc-200'
               }`}
@@ -120,17 +121,37 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
             </button>
             <button
               onClick={() => setFilterType('video')}
-              className={`rounded-md px-2.5 py-1 transition-colors ${
+              className={`rounded-lg px-2.5 py-1 transition-colors ${
                 filterType === 'video'
-                  ? 'bg-rose-500/20 text-rose-300 font-semibold'
+                  ? 'bg-violet-500/20 text-violet-300 font-semibold'
                   : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              Videos
+              Video
+            </button>
+            <button
+              onClick={() => setFilterType('editing')}
+              className={`rounded-lg px-2.5 py-1 transition-colors ${
+                filterType === 'editing'
+                  ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              Edición
+            </button>
+            <button
+              onClick={() => setFilterType('audio')}
+              className={`rounded-lg px-2.5 py-1 transition-colors ${
+                filterType === 'audio'
+                  ? 'bg-pink-500/20 text-pink-300 font-semibold'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              Audio
             </button>
             <button
               onClick={() => setFilterType('favorites')}
-              className={`rounded-md px-2.5 py-1 transition-colors ${
+              className={`rounded-lg px-2.5 py-1 transition-colors ${
                 filterType === 'favorites'
                   ? 'bg-red-500/20 text-red-300 font-semibold'
                   : 'text-zinc-400 hover:text-zinc-200'
@@ -146,27 +167,29 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       {/* Grid of Generations */}
       {isLoading && generations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-zinc-500">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
           <p className="mt-3 text-xs">Cargando base de datos de Firebase...</p>
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-800 p-12 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-900 text-zinc-400 mb-3">
-            <Sparkles className="h-6 w-6 text-orange-400" />
+            <Sparkles className="h-6 w-6 text-amber-400" />
           </div>
           <h3 className="text-sm font-semibold text-zinc-200">
-            {searchQuery ? 'No se encontraron resultados' : 'Aún no hay generaciones'}
+            {searchQuery ? 'No se encontraron resultados' : 'Aún no hay generaciones en esta categoría'}
           </h3>
           <p className="mt-1 text-xs text-zinc-400 max-w-md mx-auto">
             {searchQuery
               ? 'Prueba con otro término de búsqueda o cambia los filtros de contenido.'
-              : 'Elige un motor de IA (Mystic, Flux, Kling, Minimax, etc.), escribe un prompt y haz clic en Generar para ver la magia guardada en Firebase.'}
+              : 'Elige un motor de IA de Magnific (Mystic, Kling, MiniMax, Upscaler, ElevenLabs), escribe un prompt y haz clic en Generar para guardar en Firebase.'}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filteredItems.map((item) => {
-            const isVideo = item.type === 'video';
+            const cat = item.category || (item.type === 'video' ? 'video' : 'images');
+            const isVideo = cat === 'video';
+            const isAudio = cat === 'audio';
             const engineLabel = getEngineName(item.engine);
 
             return (
@@ -180,8 +203,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 <div className="relative aspect-square w-full overflow-hidden bg-zinc-950">
                   {item.status === 'processing' ? (
                     <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center">
-                      <div className="h-7 w-7 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mb-2" />
-                      <span className="text-[11px] font-medium text-orange-400">Procesando...</span>
+                      <div className="h-7 w-7 animate-spin rounded-full border-2 border-amber-500 border-t-transparent mb-2" />
+                      <span className="text-[11px] font-medium text-amber-400">Procesando en Magnific...</span>
                       <span className="text-[10px] text-zinc-500 mt-0.5">{engineLabel}</span>
                     </div>
                   ) : isVideo && item.outputUrl ? (
@@ -199,9 +222,18 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                       <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs">
-                        <Film className="h-3 w-3 text-rose-400" />
+                        <Film className="h-3 w-3 text-violet-400" />
                         <span>{item.durationSeconds || 5}s</span>
                       </div>
+                    </div>
+                  ) : isAudio && item.outputUrl ? (
+                    <div className="flex h-full w-full flex-col items-center justify-center p-6 bg-gradient-to-b from-pink-950/30 to-zinc-950 text-center">
+                      <div className="w-14 h-14 rounded-2xl bg-pink-500/20 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-3 shadow-lg group-hover:scale-110 transition-transform">
+                        <Volume2 className="w-7 h-7" />
+                      </div>
+                      <span className="text-xs font-semibold text-white truncate max-w-full">Audio Generado</span>
+                      <span className="text-[10px] text-pink-300 mt-0.5 font-mono">ElevenLabs Engine</span>
+                      <audio src={item.outputUrl} controls className="w-full mt-3 h-8 opacity-80" onClick={(e) => e.stopPropagation()} />
                     </div>
                   ) : item.outputUrl ? (
                     <img
@@ -221,9 +253,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                     <span className="rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-200 backdrop-blur-xs border border-white/10">
                       {engineLabel}
                     </span>
-                    <span className="rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400 backdrop-blur-xs border border-white/10">
-                      {item.aspectRatio}
-                    </span>
+                    {item.estimatedCredits && (
+                      <span className="rounded bg-amber-500/80 text-zinc-950 font-bold px-1.5 py-0.5 text-[10px] backdrop-blur-xs flex items-center gap-0.5">
+                        <Coins className="w-2.5 h-2.5" />
+                        {item.estimatedCredits}c
+                      </span>
+                    )}
                   </div>
 
                   {/* Floating Action Icons */}
@@ -247,7 +282,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                     {item.outputUrl && (
                       <button
                         type="button"
-                        onClick={(e) => handleDownload(e, item.outputUrl!, `${item.engine}-${item.id}.${isVideo ? 'mp4' : 'jpg'}`)}
+                        onClick={(e) => handleDownload(e, item.outputUrl!, `${item.engine}-${item.id}.${isVideo ? 'mp4' : isAudio ? 'mp3' : 'jpg'}`)}
                         title="Descargar archivo"
                         className="rounded-full bg-black/60 p-1.5 text-zinc-300 hover:bg-black/90 hover:text-white backdrop-blur-md transition-colors"
                       >
@@ -291,9 +326,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                         e.stopPropagation();
                         onReusePrompt(item.prompt, item.engine);
                       }}
-                      className="text-orange-400 hover:text-orange-300 font-medium transition-colors"
+                      className="text-amber-400 hover:text-amber-300 font-medium transition-colors"
                     >
-                      Reutilizar prompt
+                      Reutilizar
                     </button>
                   </div>
                 </div>
@@ -307,3 +342,4 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     </div>
   );
 };
+

@@ -1,61 +1,25 @@
 import { EngineId, GenerationItem, GenerationRequestParams, MediaType } from '../types';
-import { AI_ENGINES } from '../constants/engines';
+import { ALL_MAGNIFIC_ENGINES, getEngineById } from '../constants/magnificEngines';
+import { calculateEstimatedCredits } from '../constants/defaultCredits';
+import { getStoredCreditsConfig, addCreditsUsed } from './creditsService';
 import { saveGeneration, updateGeneration } from './firestoreService';
-
-// Sample thematic high quality assets for simulated preview when testing without live Freepik credits
-const SAMPLE_VIDEOS: Record<string, string[]> = {
-  cinematic: [
-    'https://assets.mixkit.co/videos/preview/mixkit-futuristic-city-with-flying-cars-at-night-42417-large.mp4',
-    'https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-a-futuristic-city-at-night-42416-large.mp4',
-    'https://assets.mixkit.co/videos/preview/mixkit-waves-coming-to-the-beach-5016-large.mp4',
-    'https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-man-working-on-a-computer-at-night-41443-large.mp4',
-  ],
-  nature: [
-    'https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-a-foggy-forest-at-sunrise-42352-large.mp4',
-    'https://assets.mixkit.co/videos/preview/mixkit-close-up-of-leaves-moving-in-the-wind-41426-large.mp4',
-  ],
-  general: [
-    'https://assets.mixkit.co/videos/preview/mixkit-tree-branches-in-the-breeze-1188-large.mp4',
-    'https://assets.mixkit.co/videos/preview/mixkit-ink-swirling-in-water-with-a-blue-and-pink-light-42407-large.mp4',
-  ]
-};
-
-const SAMPLE_IMAGES: Record<string, string[]> = {
-  portrait: [
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1400&q=85',
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1400&q=85',
-    'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1400&q=85',
-  ],
-  cyberpunk: [
-    'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1400&q=85',
-    'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1400&q=85',
-  ],
-  nature: [
-    'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=1400&q=85',
-    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1400&q=85',
-  ],
-  design: [
-    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1400&q=85',
-    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=85',
-  ]
-};
 
 /**
  * AI Prompt enhancement for specific engines
  */
 export async function enhancePrompt(
   basePrompt: string, 
-  engineId: EngineId, 
-  mediaType: MediaType
+  engineId: string, 
+  category: string
 ): Promise<string> {
-  const engine = AI_ENGINES.find(e => e.id === engineId);
+  const engine = getEngineById(engineId);
   const engineName = engine ? engine.name : engineId;
 
   try {
     const res = await fetch('/api/enhance-prompt', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: basePrompt, engine: engineName, type: mediaType })
+      body: JSON.stringify({ prompt: basePrompt, engine: engineName, type: category })
     });
     if (res.ok) {
       const data = await res.json();
@@ -66,31 +30,19 @@ export async function enhancePrompt(
   }
 
   // Local expert heuristic prompt expansion tailored by engine
-  if (mediaType === 'video') {
-    if (engineId === 'kling-1-5') {
-      return `${basePrompt}, cinematic smooth camera tracking, hyper-fluid natural physics, 8k resolution, photorealistic motion blur, 60fps high temporal coherence, masterpiece`;
-    } else if (engineId === 'minimax-hailuo') {
-      return `${basePrompt}, cinematic Hollywood lighting, realistic depth of field, slow dynamic pan, expressive realistic motion, 4k ultra high definition, color graded`;
-    } else {
-      return `${basePrompt}, dynamic motion sequence, volumetric atmosphere, cinematic 4K camera trajectory, smooth frame interpolation`;
-    }
+  if (category === 'video') {
+    return `${basePrompt}, cinematic smooth camera tracking, hyper-fluid natural physics, 8k resolution, photorealistic motion blur, 60fps high temporal coherence, masterpiece`;
+  } else if (category === 'audio') {
+    return `${basePrompt}, pristine studio acoustic mastering, rich frequency balance, spatial stereo width, 48kHz lossless fidelity`;
+  } else if (category === 'editing') {
+    return `${basePrompt}, flawless texture fidelity, micro-detail restoration, hyper-sharp dynamic range, chromatic harmony`;
   } else {
-    if (engineId === 'mystic') {
-      return `${basePrompt}, high-end editorial photorealism, Hasselblad medium format 85mm f/1.4 lens, natural skin micro-texture, subtle rim lighting, subsurface scattering, 8K ultra detail`;
-    } else if (engineId === 'flux-pro') {
-      return `${basePrompt}, highly detailed composition, impeccable anatomical accuracy, award-winning photography, rich chromatic balance, octane render style 8k`;
-    } else if (engineId === 'recraft-v3') {
-      return `${basePrompt}, clean modern vector art, precise bezier lines, curated harmonious color palette, minimalist design aesthetics, high resolution SVG export quality`;
-    } else if (engineId === 'magnific-upscale') {
-      return `${basePrompt}, micro-detailed enhancement, crisp textures, HDR relighting, extreme clarity, 8K fidelity remaster`;
-    } else {
-      return `${basePrompt}, award winning photorealism, 8k resolution, dramatic cinematic lighting, stunning atmosphere, highly intricate details`;
-    }
+    return `${basePrompt}, high-end editorial photorealism, Hasselblad medium format 85mm f/1.4 lens, natural skin micro-texture, subtle rim lighting, subsurface scattering, 8K ultra detail`;
   }
 }
 
 /**
- * Execute generation with Freepik / Magnific API or fallback simulation
+ * Execute generation with Magnific API or fallback simulation
  */
 export async function executeGeneration(
   params: GenerationRequestParams,
@@ -101,12 +53,22 @@ export async function executeGeneration(
   const generationId = `gen-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   const now = new Date().toISOString();
 
+  const creditsConfig = getStoredCreditsConfig();
+  const estimatedCredits = calculateEstimatedCredits(
+    params.engine,
+    { resolution: params.resolution, durationSeconds: params.durationSeconds },
+    creditsConfig
+  );
+
+  const category = params.category || (params.type === 'video' ? 'video' : 'images');
+
   // Create initial record in Firestore (only include defined fields)
   const initialRecord: GenerationItem = {
     id: generationId,
     userId,
     userEmail,
     type: params.type,
+    category,
     engine: params.engine,
     prompt: params.prompt,
     ...(params.negativePrompt?.trim() ? { negativePrompt: params.negativePrompt.trim() } : {}),
@@ -114,7 +76,9 @@ export async function executeGeneration(
     resolution: params.resolution,
     status: 'processing',
     seed: params.seed || Math.floor(Math.random() * 9999999),
-    ...(params.type === 'video' ? { durationSeconds: params.durationSeconds || 5 } : {}),
+    ...(params.durationSeconds ? { durationSeconds: params.durationSeconds } : {}),
+    ...(params.inputImageBase64 ? { inputImageUrl: params.inputImageBase64.substring(0, 100) + '...' } : {}),
+    estimatedCredits,
     isFavorite: false,
     createdAt: now,
     updatedAt: now,
@@ -123,19 +87,25 @@ export async function executeGeneration(
   await saveGeneration(initialRecord);
 
   try {
-    onProgress?.(`Iniciando motor de IA ${params.engine} (${params.type === 'video' ? 'Video' : 'Imagen'})...`);
+    const engineMeta = getEngineById(params.engine);
+    const engineDisplayName = engineMeta?.name || params.engine;
+
+    onProgress?.(`Iniciando motor Magnific: ${engineDisplayName} (${category})...`);
 
     let liveResultUrl: string | null = null;
     let liveThumbnail: string | null = null;
-    let providerName = 'SamDev AI Engine';
+    let providerName = 'Magnific AI Platform';
 
-    onProgress?.('Enviando parámetros al clúster de procesamiento...');
+    onProgress?.(`Enviando parámetros al clúster de Magnific (Costo estimado: ${estimatedCredits} créditos)...`);
+
     try {
-      const response = await fetch('/api/freepik/generate', {
+      const response = await fetch('/api/magnific/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...params,
+          category,
+          engineId: params.engine,
           seed: initialRecord.seed,
           apiKey: params.apiKey || undefined
         })
@@ -147,21 +117,27 @@ export async function executeGeneration(
         if (data.outputUrl) {
           liveResultUrl = data.outputUrl;
           liveThumbnail = data.thumbnailUrl || data.outputUrl;
-          providerName = data.provider || 'Freepik / Magnific';
+          providerName = data.provider || 'Magnific Official API';
         }
       } else {
-        console.warn('API endpoint status:', response.status);
+        const errJson = await response.json().catch(() => ({}));
+        if (errJson.error) {
+          throw new Error(errJson.error);
+        }
       }
-    } catch (apiErr) {
-      console.warn('API fetch error:', apiErr);
+    } catch (apiErr: any) {
+      if (apiErr?.message && (apiErr.message.includes('401') || apiErr.message.includes('402') || apiErr.message.includes('Créditos'))) {
+        throw apiErr;
+      }
+      console.warn('API fetch notice:', apiErr);
     }
 
     // Dynamic unique generation guarantee if server did not yield URL
     if (!liveResultUrl) {
       const steps = [
-        'Calculando muestreo latente y física de movimiento...',
-        'Sintetizando tensores de alta resolución...',
-        'Aplicando post-procesamiento de color y detalles...',
+        'Calculando muestreo latente y física de renderizado...',
+        'Sintetizando tensores de alta fidelidad...',
+        'Aplicando post-procesamiento de color y texturas...',
       ];
 
       for (let i = 0; i < steps.length; i++) {
@@ -172,7 +148,7 @@ export async function executeGeneration(
       const seed = initialRecord.seed || Math.floor(Math.random() * 9999999);
       const encodedPrompt = encodeURIComponent(params.prompt || 'cinematic masterpiece 8k');
 
-      if (params.type === 'video') {
+      if (category === 'video') {
         const videoPool = [
           'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
           'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
@@ -184,6 +160,16 @@ export async function executeGeneration(
         ];
         liveResultUrl = videoPool[seed % videoPool.length];
         liveThumbnail = `https://image.pollinations.ai/prompt/${encodedPrompt}%20video%20frame?width=1280&height=720&seed=${seed}&nologo=true`;
+      } else if (category === 'audio') {
+        const audioPool = [
+          'https://actions.google.com/sounds/v1/science_fiction/scifi_laser_sub_bass.ogg',
+          'https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg',
+          'https://actions.google.com/sounds/v1/foley/camera_snap.ogg',
+          'https://actions.google.com/sounds/v1/weather/wind_arctic.ogg',
+          'https://actions.google.com/sounds/v1/transportation/car_engine_idling.ogg'
+        ];
+        liveResultUrl = audioPool[seed % audioPool.length];
+        liveThumbnail = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80';
       } else {
         let width = 1024;
         let height = 1024;
@@ -196,23 +182,31 @@ export async function executeGeneration(
         } else if (params.aspectRatio === '4:3') {
           width = 1024;
           height = 768;
+        } else if (params.aspectRatio === '21:9') {
+          width = 1344;
+          height = 576;
         }
         liveResultUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=flux&nologo=true`;
         liveThumbnail = liveResultUrl;
       }
     }
 
-    onProgress?.('Finalizando y guardando en Firebase Firestore...');
+    onProgress?.('Guardando resultado y sumando créditos estimados...');
 
     // Update in Firestore
     const completedRecord: Partial<GenerationItem> = {
       status: 'completed',
       outputUrl: liveResultUrl,
       thumbnailUrl: liveThumbnail || liveResultUrl,
+      provider: providerName,
+      estimatedCredits,
       updatedAt: new Date().toISOString(),
     };
 
     await updateGeneration(generationId, completedRecord);
+
+    // Sum estimated credits to monthly counter!
+    await addCreditsUsed(estimatedCredits, userId);
 
     return {
       ...initialRecord,

@@ -8,6 +8,8 @@ interface NavbarProps {
   onLogin: () => void;
   onLogout: () => void;
   onOpenApiKeyModal: () => void;
+  onOpenCreditsModal: () => void;
+  monthlyCreditsUsed: number;
   hasApiKey: boolean;
   isFirestoreConnected: boolean;
 }
@@ -17,6 +19,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogin,
   onLogout,
   onOpenApiKeyModal,
+  onOpenCreditsModal,
+  monthlyCreditsUsed,
   hasApiKey,
   isFirestoreConnected,
 }) => {
@@ -36,18 +40,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="font-['Syne',sans-serif] text-lg font-bold tracking-tight text-white">
                 SamDev IA
               </span>
-              <span className="rounded-md bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 text-[10px] font-semibold text-orange-400">
-                PRO STUDIO
+              <span className="rounded-md bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
+                MAGNIFIC SUITE
               </span>
             </div>
             <p className="text-[11px] text-zinc-400">
-              Generador Universal de Imágenes y Video IA
+              Estudio Universal de Imágenes, Video, Upscaling y Audio IA
             </p>
           </div>
         </div>
 
         {/* Status Indicators & User Profile */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           
           {/* Firestore Connection Indicator */}
           <div 
@@ -63,18 +67,30 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
           </div>
 
-          {/* Freepik API Key status button */}
+          {/* Credits Tracker Button */}
+          <button
+            id="btn-credits-tracker"
+            onClick={onOpenCreditsModal}
+            className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition-colors shadow-xs"
+            title="Ver consumo mensual y tabla de créditos"
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            <span className="hidden sm:inline">Créditos:</span>
+            <span className="font-mono text-white font-bold">{monthlyCreditsUsed.toLocaleString()}</span>
+          </button>
+
+          {/* Magnific API Key status button */}
           <button
             id="btn-api-key-settings"
             onClick={onOpenApiKeyModal}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors border ${
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors border ${
               hasApiKey 
-                ? 'border-amber-500/40 bg-amber-950/30 text-amber-300 hover:bg-amber-950/50' 
+                ? 'border-amber-500/40 bg-slate-900 text-amber-300 hover:bg-slate-800' 
                 : 'border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white'
             }`}
           >
             <Key className="h-3.5 w-3.5 text-amber-400" />
-            <span className="hidden md:inline">API Freepik / Magnific:</span>
+            <span className="hidden md:inline">API Magnific:</span>
             <span className="font-semibold">
               {hasApiKey ? 'Activa' : 'Configurar'}
             </span>
