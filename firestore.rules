@@ -1,0 +1,68 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connectivity test document allowed for health checks
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'gerito.diseno@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // User profiles & settings
+    match /users/{userId} {
+      allow get: if isUser(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isUser(userId) && request.resource.data.uid == userId;
+      allow update: if (isUser(userId) && request.resource.data.uid == userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // AI Generations (Images and Videos)
+    match /generations/{generationId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && 
+                    isValidId(generationId) && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.prompt is string &&
+                    request.resource.data.prompt.size() <= 5000;
+      allow update: if isSignedIn() && 
+                    isValidId(generationId) && 
+                    (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && 
+                    isValidId(generationId) && 
+                    (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Prompt Presets and Styles
+    match /presets/{presetId} {
+      allow read, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "entities": {
+    "Generation": {
+      "title": "Generation",
+      "description": "Represents an AI generated image or video task and output result",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique task or generation identifier"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who initiated the generation"
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "The email of the user who initiated the generation"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["image", "video"],
+          "description": "Whether the output is an image or video"
+        },
+        "engine": {
+          "type": "string",
+          "description": "AI engine used: mystic, flux-pro, kling-1.5, minimax, imagen-3, recraft-v3, magnific-upscale, runway-gen3, etc."
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 5000,
+          "description": "The creative prompt used for generation"
+        },
+        "negativePrompt": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Negative prompt or unwanted elements"
+        },
+        "aspectRatio": {
+          "type": "string",
+          "description": "Aspect ratio such as 1:1, 16:9, 9:16, 4:3, 21:9"
+        },
+        "resolution": {
+          "type": "string",
+          "description": "Output resolution (1k, 2k, 4k, 720p, 1080p)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "processing", "completed", "failed"],
+          "description": "Current status of generation"
+        },
+        "outputUrl": {
+          "type": "string",
+          "description": "URL of the generated video or image"
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "description": "Thumbnail preview URL"
+        },
+        "seed": {
+          "type": "number",
+          "description": "Random seed used for generation"
+        },
+        "isFavorite": {
+          "type": "boolean",
+          "description": "Whether user marked item as favorite"
+        },
+        "durationSeconds": {
+          "type": "number",
+          "description": "Duration in seconds for video outputs"
+        },
+        "error": {
+          "type": "string",
+          "description": "Error message if failed"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp"
+        }
+      },
+      "required": ["id", "userId", "userEmail", "type", "engine", "prompt", "status", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with configuration and settings",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth User UID"
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar photo URL"
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "description": "Whether user has administrator privileges"
+        },
+        "defaultEngine": {
+          "type": "string",
+          "description": "Preferred default AI engine"
+        },
+        "freepikApiKey": {
+          "type": "string",
+          "description": "Saved Freepik / Magnific API key"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Account registration timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last settings update timestamp"
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "Preset": {
+      "title": "Preset",
+      "description": "Prompt styles and engine configurations",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Preset identifier"
+        },
+        "title": {
+          "type": "string",
+          "description": "Preset title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Preset description"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category (cinematic, photoreal, 3d, anime, etc.)"
+        },
+        "promptTemplate": {
+          "type": "string",
+          "description": "Prompt template or prefix"
+        },
+        "engine": {
+          "type": "string",
+          "description": "Recommended AI engine"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["image", "video"],
+          "description": "Media type"
+        },
+        "aspectRatio": {
+          "type": "string",
+          "description": "Default aspect ratio"
+        }
+      },
+      "required": ["id", "title", "category", "promptTemplate", "type"]
+    }
+  },
+  "firestore": {
+    "/generations/{generationId}": {
+      "schema": {
+        "$ref": "#/entities/Generation"
+      },
+      "description": "Collection of all AI image and video generation jobs and assets"
+    },
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Collection of user preferences, configuration and profile"
+    },
+    "/presets/{presetId}": {
+      "schema": {
+        "$ref": "#/entities/Preset"
+      },
+      "description": "Collection of prompt styles, templates, and engine presets"
+    }
+  }
+}
