@@ -19,6 +19,30 @@ const GENERATIONS_COLLECTION = 'generations';
 const USERS_COLLECTION = 'users';
 
 /**
+ * Strips all undefined fields recursively so Firestore never rejects payloads
+ */
+export function sanitizeForFirestore<T>(data: T): any {
+  if (data === null || data === undefined) {
+    return null;
+  }
+  if (Array.isArray(data)) {
+    return data
+      .filter((item) => item !== undefined)
+      .map((item) => sanitizeForFirestore(item));
+  }
+  if (typeof data === 'object' && !(data instanceof Date)) {
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data as Record<string, any>)) {
+      if (value !== undefined) {
+        cleaned[key] = sanitizeForFirestore(value);
+      }
+    }
+    return cleaned;
+  }
+  return data;
+}
+
+/**
  * Save a new generation task to Firestore
  */
 export async function saveGeneration(item: GenerationItem): Promise<void> {
@@ -30,10 +54,11 @@ export async function saveGeneration(item: GenerationItem): Promise<void> {
 
   try {
     const docRef = doc(db, GENERATIONS_COLLECTION, item.id);
-    await setDoc(docRef, {
+    const cleanedData = sanitizeForFirestore({
       ...item,
       updatedAt: new Date().toISOString(),
     });
+    await setDoc(docRef, cleanedData);
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, path);
   }
@@ -50,10 +75,11 @@ export async function updateGeneration(id: string, updates: Partial<GenerationIt
 
   try {
     const docRef = doc(db, GENERATIONS_COLLECTION, id);
-    await updateDoc(docRef, {
+    const cleanedUpdates = sanitizeForFirestore({
       ...updates,
       updatedAt: new Date().toISOString(),
     });
+    await updateDoc(docRef, cleanedUpdates);
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
   }
@@ -146,12 +172,12 @@ export async function saveUserProfile(profile: Partial<UserProfile> & { uid: str
     const existing = await getDoc(docRef);
     const isAdmin = profile.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
-    const dataToSave = {
+    const dataToSave = sanitizeForFirestore({
       ...profile,
       isAdmin,
       updatedAt: new Date().toISOString(),
       ...(existing.exists() ? {} : { createdAt: new Date().toISOString() }),
-    };
+    });
 
     await setDoc(docRef, dataToSave, { merge: true });
   } catch (error) {

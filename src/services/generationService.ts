@@ -101,7 +101,7 @@ export async function executeGeneration(
   const generationId = `gen-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   const now = new Date().toISOString();
 
-  // Create initial record in Firestore
+  // Create initial record in Firestore (only include defined fields)
   const initialRecord: GenerationItem = {
     id: generationId,
     userId,
@@ -109,12 +109,12 @@ export async function executeGeneration(
     type: params.type,
     engine: params.engine,
     prompt: params.prompt,
-    negativePrompt: params.negativePrompt,
+    ...(params.negativePrompt?.trim() ? { negativePrompt: params.negativePrompt.trim() } : {}),
     aspectRatio: params.aspectRatio,
     resolution: params.resolution,
     status: 'processing',
     seed: params.seed || Math.floor(Math.random() * 9999999),
-    durationSeconds: params.type === 'video' ? (params.durationSeconds || 5) : undefined,
+    ...(params.type === 'video' ? { durationSeconds: params.durationSeconds || 5 } : {}),
     isFavorite: false,
     createdAt: now,
     updatedAt: now,
@@ -141,7 +141,8 @@ export async function executeGeneration(
         })
       });
 
-      if (response.ok) {
+      const contentType = response.headers.get('content-type') || '';
+      if (response.ok && contentType.includes('application/json')) {
         const data = await response.json();
         if (data.outputUrl) {
           liveResultUrl = data.outputUrl;
@@ -149,8 +150,7 @@ export async function executeGeneration(
           providerName = data.provider || 'Freepik / Magnific';
         }
       } else {
-        const errJson = await response.json().catch(() => ({}));
-        console.warn('Server generation notice:', errJson);
+        console.warn('API endpoint status:', response.status);
       }
     } catch (apiErr) {
       console.warn('API fetch error:', apiErr);

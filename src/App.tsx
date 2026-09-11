@@ -143,7 +143,16 @@ export default function App() {
       setSelectedMedia(result);
     } catch (err: any) {
       console.error('Error during generation:', err);
-      alert('Error en la generación: ' + (err.message || String(err)));
+      let errorText = err.message || String(err);
+      try {
+        const parsed = JSON.parse(errorText);
+        if (parsed.error) {
+          errorText = parsed.error;
+        }
+      } catch {
+        // Not JSON
+      }
+      alert('Error en la generación: ' + errorText);
     } finally {
       setIsGenerating(false);
       setGenerationProgressText('');
